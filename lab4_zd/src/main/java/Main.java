@@ -22,6 +22,11 @@ class WaitTimeTracker {
         waits++;
     }
 
+    public static void reset() {
+        totalWaitTime = 0;
+        waits = 0;
+    }
+
     public static double getAverageWaitTime() {
         return (double) totalWaitTime / waits;
     }
@@ -103,6 +108,7 @@ abstract class SynchronizedPhilosopher extends Philosopher {
 
             } catch (InterruptedException e) {
                 log("finishing...");
+                Thread.currentThread().interrupt();
                 return;
             }
         }
@@ -141,6 +147,7 @@ class Philosopher2 extends Philosopher {
                 log("unlocked both forks");
             } catch (InterruptedException e) {
                 log("finishing...");
+                Thread.currentThread().interrupt();
                 return;
             }
         }
@@ -203,6 +210,7 @@ class Philosopher5 extends Philosopher {
 
             } catch (InterruptedException e) {
                 log("finishing...");
+                Thread.currentThread().interrupt();
                 return;
             }
         }
@@ -253,6 +261,7 @@ class Philosopher6 extends Philosopher {
 
             } catch (InterruptedException e) {
                 log("finishing...");
+                Thread.currentThread().interrupt();
                 return;
             }
         }
@@ -278,17 +287,26 @@ class Main {
         }
         Thread.sleep(500);
         executor.shutdownNow();
-        System.out.println("Task " + taskNumber + ": Average wait time: " + WaitTimeTracker.getAverageWaitTime() + " [ms]");
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) {
         Philosopher.logging = false;
         Philosopher.sleeping = false;
         int n = 150;
-        for (int i = 1; i <= 6; i++) task(i, n);
+        int sims = 5;
+        try {
+            for (int i = 1; i <= 6; i++) {
+                double averageWaitTime = 0;
+                for (int j = 0; j < sims; j++) {
+                    task(i, n);
+                    averageWaitTime += WaitTimeTracker.getAverageWaitTime();
+                    WaitTimeTracker.reset();
+                }
+                averageWaitTime = averageWaitTime / sims;
+                System.out.println("Task " + i + ": Average wait time over " + sims + " simulations: " + averageWaitTime + " [ms]");
+            }
+        } catch (InterruptedException ignored) {}
         System.out.println("Finished simulations");
+        System.exit(0);
     }
 }
-
-
-
